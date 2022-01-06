@@ -47,6 +47,16 @@ func get(n int) {
 	fmt.Printf("key exists in map: %t, value: %v \n", exists, value)
 }
 
+func deletebyId(n int) {
+	var approve string
+	fmt.Println("Are you sure to delete? y/n")
+	fmt.Scanf("%s", approve)
+	if approve == "y" {
+		delete(ContactList, n)
+		fmt.Println("Deleted succesfully")
+	}
+}
+
 func main() {
 	ContactList = make(map[int]*Contact)
 	var firstname, lastname, phone, email, postion string
@@ -57,6 +67,7 @@ menu:
 	fmt.Println("2.Find Contact")
 	fmt.Println("3. List of Contacts")
 	fmt.Println("4. Delete Contact")
+	fmt.Println("5. Update Contact")
 	fmt.Println("Choose")
 	fmt.Scanf("%d", &choice)
 
@@ -98,8 +109,34 @@ menu:
 		var delete_id int
 		fmt.Println("enter your id:")
 		fmt.Scanf("%d", &delete_id)
-		delete(ContactList, delete_id)
-		fmt.Println("Succesfully deleted")
+		deletebyId(delete_id)
+		goto menu
+	case 5:
+		var search_id int
+		fmt.Println("enter your id:")
+		fmt.Scanf("%d", &search_id)
+		if ContactList[search_id] != nil {
+			fmt.Println("enter first name")
+			fmt.Scanf("%s", &firstname)
+			fmt.Println("enter last name")
+			fmt.Scanf("%s", &lastname)
+			fmt.Println("enter phone")
+			fmt.Scanf("%s", &phone)
+			fmt.Println("enter email")
+			fmt.Scanf("%s", &email)
+			fmt.Println("enter postion")
+			fmt.Scanf("%s", &postion)
+			contact := Contact{
+				ID:        search_id,
+				FirstName: firstname,
+				LastName:  lastname,
+				Phone:     phone,
+				Email:     email,
+				Position:  postion,
+			}
+			fmt.Println("contact updated", contact)
+
+		}
 		goto menu
 	}
 
