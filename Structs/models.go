@@ -30,12 +30,38 @@ type Task struct {
 const (
 	host     = "localhost"
 	port     = 5432
-	user     = "postgres"
-	password = "iroda1808"
+	user     = "Kimmy"
+	password = "Kimmy@1808"
 	dbname   = "test"
 )
 
-func main() {
+const tableContactCreation = "CREATE TABLE IF NOT EXISTS contacts(id SERIAL, firstname TEXT NOT NULL, lastname TEXT NOT NULL, phone VARCHAR(13), email text, position text)"
+const tableTaskCreation = "CREATE TABLE IF NOT EXISTS tasks"
+
+func (c *Contact) createContact(db *sql.DB) error {
+	err := db.QueryRow("INSERET INTO contacts (id, firstname, lastname, phone, email, position) VALUES ($1, $2, $3, $4, $5, $6) returning id", c.FirstName, c.LastName, c.Phone, c.Email, c.Position).Scan(&c.ID)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func (c *Contact) updateContact(db *sql.DB) error {
+	_, err := db.Exec("UPDATE contacts SET firstname=$1, lastname=$2, phone=$3, email=$4, position=$5 WHERE id=$6",
+		c.FirstName, c.LastName, c.Phone, c.Email, c.Position, c.ID)
+	return err
+}
+
+func (c *Contact) deleteContact(db *sql.DB) error {
+	_, err := db.Exec("DELETE from contacts where id=$1", c.ID)
+	return err
+}
+
+func (c *Contact) getContact(db *sql.DB) error {
+	return db.QueryRow("SELECT id, firstname, lastname, phone, email, position from contacts where id=$1", c.ID).Scan(&c.FirstName, c.LastName, c.Phone, c.Email, c.Position)
+}
+
+func LoadDb() *sql.DB {
 	//connection to database
 	psqlInfo := fmt.Sprintf("host=%s port=%d user=%s password=%s dbname=%s sslmode=disable",
 		host, port, user, password, dbname)
@@ -50,4 +76,8 @@ func main() {
 		panic(err)
 	}
 	fmt.Println("Connected")
+	return db
+}
+func main() {
+
 }
