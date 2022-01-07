@@ -61,6 +61,26 @@ func (c *Contact) getContact(db *sql.DB) error {
 	return db.QueryRow("SELECT id, firstname, lastname, phone, email, position from contacts where id=$1", c.ID).Scan(&c.FirstName, c.LastName, c.Phone, c.Email, c.Position)
 }
 
+func (c *Contact) ListContacts(db *sql.DB) ([]Contact, error) {
+	contacts := []Contact{}
+	rows, err := db.Query("SELECT id, firstname, lastname, phone, email, position FROM contacts ORDER BY id")
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+		var c Contact
+
+		err = rows.Scan(&c.ID, &c.FirstName, &c.LastName, &c.Phone, &c.Email, &c.Position)
+		if err != nil {
+			return contacts, err
+		}
+		contacts = append(contacts, c)
+	}
+	return contacts, nil
+}
+
 func LoadDb() *sql.DB {
 	//connection to database
 	psqlInfo := fmt.Sprintf("host=%s port=%d user=%s password=%s dbname=%s sslmode=disable",
