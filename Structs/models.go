@@ -36,7 +36,6 @@ const (
 )
 
 const tableContactCreation = "CREATE TABLE IF NOT EXISTS contacts(id SERIAL, firstname TEXT NOT NULL, lastname TEXT NOT NULL, phone VARCHAR(13), email text, position text)"
-const tableTaskCreation = "CREATE TABLE IF NOT EXISTS tasks"
 
 func (c Contact) createContact() error {
 	db := LoadDb()
@@ -48,11 +47,21 @@ func (c Contact) createContact() error {
 	return nil
 }
 
-func (c *Contact) updateContact() error {
+func (c Contact) updateContact(n int) int64 {
 	db := LoadDb()
-	_, err := db.Exec("UPDATE contacts SET firstname=$1, lastname=$2, phone=$3, email=$4, position=$5 WHERE id=$6",
-		c.FirstName, c.LastName, c.Phone, c.Email, c.Position, c.ID)
-	return err
+	fmt.Println("We are in update")
+	sqlstatement := "UPDATE contacts SET firstname=$1, lastname=$2, phone=$3, email=$4, position=$5 WHERE id=$6"
+	res, err := db.Exec(sqlstatement, c.FirstName, c.LastName, c.Phone, c.Email, c.Position, n)
+	if err != nil {
+		fmt.Printf("Unable to execute the query. %v", err)
+	}
+	rowsAffected, err := res.RowsAffected()
+	if err != nil {
+		fmt.Printf("Error while checking the affected rows. %v", err)
+	}
+	fmt.Printf("Total rows/record affected %v", rowsAffected)
+
+	return rowsAffected
 }
 
 func deleteContact(n int) error {
@@ -73,10 +82,10 @@ func getContact(n int) (Contact, error) {
 	return contact, err
 }
 
-func (c *Contact) ListContacts() ([]Contact, error) {
+func ListContacts() ([]Contact, error) {
 	db := LoadDb()
-	contacts := []Contact{}
-	rows, err := db.Query("SELECT id, firstname, lastname, phone, email, position FROM contacts ORDER BY id")
+	var contacts []Contact
+	rows, err := db.Query("SELECT * FROM contacts ORDER BY id")
 	if err != nil {
 		return nil, err
 	}
@@ -84,13 +93,13 @@ func (c *Contact) ListContacts() ([]Contact, error) {
 
 	for rows.Next() {
 		var c Contact
-
 		err = rows.Scan(&c.ID, &c.FirstName, &c.LastName, &c.Phone, &c.Email, &c.Position)
 		if err != nil {
 			return contacts, err
 		}
 		contacts = append(contacts, c)
 	}
+	fmt.Println(contacts)
 	return contacts, nil
 }
 
@@ -102,7 +111,6 @@ func LoadDb() *sql.DB {
 	if err != nil {
 		panic(err)
 	}
-
 	err = db.Ping()
 	if err != nil {
 		panic(err)
@@ -123,7 +131,6 @@ menu:
 	fmt.Println("5. Update Contact")
 	fmt.Println("Choose")
 	fmt.Scanf("%d", &choice)
-
 	switch choice {
 	case 1:
 		fmt.Println("enter first name")
@@ -152,11 +159,38 @@ menu:
 		fmt.Scanf("%d", &search_id)
 		getContact(search_id)
 		goto menu
+	case 3:
+		ListContacts()
+		goto menu
 	case 4:
 		var delete_id int
 		fmt.Println("enter ID")
 		fmt.Scanf("%d", &delete_id)
 		deleteContact(delete_id)
+		goto menu
+	case 5:
+		var update_id int
+		fmt.Println("enter ID")
+		fmt.Scanf("%d", &update_id)
+		fmt.Println("enter first name")
+		fmt.Scanf("%s", &firstname)
+		fmt.Println("enter last name")
+		fmt.Scanf("%s", &lastname)
+		fmt.Println("enter phone")
+		fmt.Scanf("%s", &phone)
+		fmt.Println("enter email")
+		fmt.Scanf("%s", &email)
+		fmt.Println("enter postion")
+		fmt.Scanf("%s", &postion)
+		contact := Contact{
+			FirstName: firstname,
+			LastName:  lastname,
+			Phone:     phone,
+			Email:     email,
+			Position:  postion,
+		}
+		contact.updateContact(update_id)
+		fmt.Println("after update")
 		goto menu
 	}
 }
