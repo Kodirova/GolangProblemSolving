@@ -38,30 +38,43 @@ const (
 const tableContactCreation = "CREATE TABLE IF NOT EXISTS contacts(id SERIAL, firstname TEXT NOT NULL, lastname TEXT NOT NULL, phone VARCHAR(13), email text, position text)"
 const tableTaskCreation = "CREATE TABLE IF NOT EXISTS tasks"
 
-func (c *Contact) createContact(db *sql.DB) error {
-	err := db.QueryRow("INSERET INTO contacts (id, firstname, lastname, phone, email, position) VALUES ($1, $2, $3, $4, $5, $6) returning id", c.FirstName, c.LastName, c.Phone, c.Email, c.Position).Scan(&c.ID)
+func (c Contact) createContact() error {
+	db := LoadDb()
+	sqlStatement := `INSERT INTO contacts(firstname, lastname, phone, email, position) VALUES($1, $2, $3, $4, $5) RETURNING id`
+	err := db.QueryRow(sqlStatement, c.FirstName, c.LastName, c.Phone, c.Email, c.Position).Scan(&c.ID)
 	if err != nil {
 		return err
 	}
 	return nil
 }
 
-func (c *Contact) updateContact(db *sql.DB) error {
+func (c *Contact) updateContact() error {
+	db := LoadDb()
 	_, err := db.Exec("UPDATE contacts SET firstname=$1, lastname=$2, phone=$3, email=$4, position=$5 WHERE id=$6",
 		c.FirstName, c.LastName, c.Phone, c.Email, c.Position, c.ID)
 	return err
 }
 
-func (c *Contact) deleteContact(db *sql.DB) error {
-	_, err := db.Exec("DELETE from contacts where id=$1", c.ID)
+func deleteContact(n int) error {
+	db := LoadDb()
+	_, err := db.Exec("DELETE from contacts where id=$1", n)
+	fmt.Println(err)
+	fmt.Println("Sucessfully deleted")
 	return err
 }
 
-func (c *Contact) getContact(db *sql.DB) error {
-	return db.QueryRow("SELECT id, firstname, lastname, phone, email, position from contacts where id=$1", c.ID).Scan(&c.FirstName, c.LastName, c.Phone, c.Email, c.Position)
+func getContact(n int) (Contact, error) {
+	db := LoadDb()
+	var contact Contact
+	sqlstatement := "SELECT id, firstname, lastname, phone, email, position FROM contacts WHERE id=$1"
+	row := db.QueryRow(sqlstatement, n)
+	err := row.Scan(&contact.ID, &contact.FirstName, &contact.LastName, &contact.Phone, &contact.Email, &contact.Position)
+	fmt.Println(contact)
+	return contact, err
 }
 
-func (c *Contact) ListContacts(db *sql.DB) ([]Contact, error) {
+func (c *Contact) ListContacts() ([]Contact, error) {
+	db := LoadDb()
 	contacts := []Contact{}
 	rows, err := db.Query("SELECT id, firstname, lastname, phone, email, position FROM contacts ORDER BY id")
 	if err != nil {
@@ -89,15 +102,61 @@ func LoadDb() *sql.DB {
 	if err != nil {
 		panic(err)
 	}
-	defer db.Close()
 
 	err = db.Ping()
 	if err != nil {
 		panic(err)
 	}
-	fmt.Println("Connected")
+	fmt.Println("Database Connected")
 	return db
 }
-func main() {
 
+func main() {
+	var firstname, lastname, phone, email, postion string
+menu:
+	var choice int
+	fmt.Println("MENU")
+	fmt.Println("1.Create Contact")
+	fmt.Println("2.Find Contact")
+	fmt.Println("3. List of Contacts")
+	fmt.Println("4. Delete Contact")
+	fmt.Println("5. Update Contact")
+	fmt.Println("Choose")
+	fmt.Scanf("%d", &choice)
+
+	switch choice {
+	case 1:
+		fmt.Println("enter first name")
+		fmt.Scanf("%s", &firstname)
+		fmt.Println("enter last name")
+		fmt.Scanf("%s", &lastname)
+		fmt.Println("enter phone")
+		fmt.Scanf("%s", &phone)
+		fmt.Println("enter email")
+		fmt.Scanf("%s", &email)
+		fmt.Println("enter postion")
+		fmt.Scanf("%s", &postion)
+		contact := Contact{
+			FirstName: firstname,
+			LastName:  lastname,
+			Phone:     phone,
+			Email:     email,
+			Position:  postion,
+		}
+		fmt.Println(contact)
+		contact.createContact()
+		goto menu
+	case 2:
+		var search_id int
+		fmt.Println("enter ID")
+		fmt.Scanf("%d", &search_id)
+		getContact(search_id)
+		goto menu
+	case 4:
+		var delete_id int
+		fmt.Println("enter ID")
+		fmt.Scanf("%d", &delete_id)
+		deleteContact(delete_id)
+		goto menu
+	}
 }
