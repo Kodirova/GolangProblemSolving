@@ -47,15 +47,14 @@ func get(n int) {
 	fmt.Printf("key exists in map: %t, value: %v \n", exists, value)
 }
 
-func deletebyId(n int) {
-	var approve string
-	fmt.Println("Are you sure to delete? y/n")
-	fmt.Scanf("%s", approve)
-	if approve == "y" {
-		delete(ContactList, n)
-		fmt.Println("Deleted succesfully")
-	}
-}
+// func deletebyId(n int){
+// 	var approve string
+// 	fmt.Println("Are you sure to delete? y/n")
+// 	fmt.Scanf("%s", approve)
+// 	if approve == "yes"{
+// 		delete(ContactList, n)
+// 	}	
+// }
 
 func main() {
 	ContactList = make(map[int]*Contact)
@@ -109,7 +108,8 @@ menu:
 		var delete_id int
 		fmt.Println("enter your id:")
 		fmt.Scanf("%d", &delete_id)
-		deletebyId(delete_id)
+		delete(ContactList, delete_id)
+		fmt.Println("Succesfully deleted")
 		goto menu
 	case 5:
 		var search_id int
@@ -137,7 +137,7 @@ menu:
 			fmt.Println("contact updated", contact)
 
 		}
-		goto menu
+		goto menu	
 	}
 
 }
