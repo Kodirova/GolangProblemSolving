@@ -1,13 +1,11 @@
 package Database
 
 import (
+	"database/sql"
 	"fmt"
 
-	"gorm.io/driver/postgres"
-	"gorm.io/gorm"
+	_ "github.com/lib/pq"
 )
-
-var DB *gorm.DB
 
 const (
 	host     = "localhost"
@@ -17,13 +15,19 @@ const (
 	dbname   = "crud"
 )
 
-func ConnectDB() {
-	var err error
+var DB *sql.DB
+
+func ConnectDB() *sql.DB {
 	psqlInfo := fmt.Sprintf("host=%s port=%d user=%s password=%s dbname=%s sslmode=disable",
 		host, port, user, password, dbname)
-	connection, err := gorm.Open(postgres.Open(psqlInfo), &gorm.Config{})
+	DB, err := sql.Open("postgres", psqlInfo)
 	if err != nil {
-		panic("could not connect to DB!")
+		panic(err)
 	}
-	DB = connection
+	err = DB.Ping()
+	if err != nil {
+		panic(err)
+	}
+	fmt.Println("Database Connected")
+	return DB
 }

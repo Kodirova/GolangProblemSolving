@@ -16,5 +16,13 @@ func SetUpRouter() *gin.Engine {
 		group1.PUT("contact/:id", Controllers.UpdateContact)
 		group1.DELETE("contact/:id", Controllers.DeleteContact)
 	}
+	group2 := route.Group("task-api")
+	{
+		group2.POST("task", Controllers.CreateTask)
+		group2.GET("task", Controllers.ListTask)
+		group2.GET("task/:id", Controllers.GetTask)
+		group2.PUT("task/:id", Controllers.UpdateTask)
+		group2.DELETE("task/:id", Controllers.DeleteTask)
+	}
 	return route
 }
