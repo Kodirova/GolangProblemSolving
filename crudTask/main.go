@@ -9,11 +9,13 @@ import (
 var err error
 
 func main() {
+	Database.LoadEnv()
 	Database.ConnectDB()
+
 	if err != nil {
 		fmt.Println("Status:", err)
 
 	}
 	route := Routes.SetUpRouter()
-	route.Run()
+	route.Run(":8080")
 }
