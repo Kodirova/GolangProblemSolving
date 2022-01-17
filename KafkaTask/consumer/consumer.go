@@ -1,11 +1,14 @@
 package consumer
 
 import (
-	"KafkaTask/api/database"
+	"KafkaTask/api/middlewares"
 	"KafkaTask/api/model"
 	"encoding/json"
 	"fmt"
 	"log"
+	"os"
+	"os/signal"
+	"syscall"
 
 	"github.com/Shopify/sarama"
 )
@@ -13,8 +16,8 @@ import (
 const tableContactCreation = "CREATE TABLE IF NOT EXISTS contacts(id SERIAL, firstname TEXT NOT NULL, lastname TEXT NOT NULL, phone VARCHAR(13), email text, position text)"
 
 func ConnectConsumer(brockersUrl []string) (sarama.Consumer, error) {
+	sarama.Logger = log.New(os.Stdout, "[sarama_consumer] ", log.LstdFlags)
 	config := sarama.NewConfig()
-	config.Producer.Partitioner = sarama.NewManualPartitioner
 	config.Consumer.Return.Errors = true
 
 	conn, err := sarama.NewConsumer(brockersUrl, config)
@@ -26,34 +29,48 @@ func ConnectConsumer(brockersUrl []string) (sarama.Consumer, error) {
 }
 
 func CreateContact() error {
-	var contact *model.Contact
+	brokersUrl := []string{"localhost:9092"}
 	topic := "create"
-	consumer, err1 := ConnectConsumer([]string{"localhost:9092"})
-	if err1 != nil {
-		panic(err1)
+	worker, err := ConnectConsumer(brokersUrl)
+	if err != nil {
+		panic(err)
 	}
-	partitionConsumer, err1 := consumer.ConsumePartition(topic, 0, sarama.OffsetOldest)
-	if err1 != nil {
-		panic(err1)
+	consumer, err := worker.ConsumePartition(topic, 0, sarama.OffsetOldest)
+	if err != nil {
+		panic(err)
 	}
-	log.Print("Connected to kafka broker")
-	for m := range partitionConsumer.Messages() {
-		text := string(m.Value)
-		bytes := []byte(text)
-		json.Unmarshal(bytes, &contact)
-		db := database.ConnectDB()
-		res, err1 := db.Exec(tableContactCreation)
-		if err1 != nil {
-			return err1
+	fmt.Println("Consumer started ")
+	sigchan := make(chan os.Signal, 1)
+	signal.Notify(sigchan, syscall.SIGINT, syscall.SIGTERM)
+	// Count how many message processed
+	msgCount := 0
+	var contact model.Contact
+	// Get signal for finish
+	doneCh := make(chan struct{})
+	go func() {
+		for {
+			select {
+			case err := <-consumer.Errors():
+				fmt.Println(err)
+			case msg := <-consumer.Messages():
+				msgCount++
+				fmt.Printf("Received message Count %d: | Topic(%s) | Message(%s) \n", msgCount, string(msg.Topic), string(msg.Value))
+				resp := json.Unmarshal([]byte(msg.Value), &contact)
+				fmt.Println(resp)
+				fmt.Println(contact)
+				middlewares.CreateContact(&contact)
+			case <-sigchan:
+				fmt.Println("Interrupt is detected")
+				doneCh <- struct{}{}
+			}
 		}
-		fmt.Println(res)
-		sqlStatement := `INSERT INTO contacts(firstname, lastname, phone, email, position) VALUES($1, $2, $3, $4, $5) RETURNING id`
-		err := db.QueryRow(sqlStatement, &contact.FirstName, &contact.LastName, &contact.Phone, &contact.Email, &contact.Position).Scan(&contact.ID)
+	}()
 
-		fmt.Println(res)
-		if err != nil {
-			return err
-		}
+	<-doneCh
+	fmt.Println("Processed", msgCount, "messages")
+
+	if err := worker.Close(); err != nil {
+		panic(err)
 	}
 
 	return nil

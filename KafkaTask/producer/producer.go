@@ -9,7 +9,7 @@ import (
 )
 
 func ConnectProducer(brokersUrl []string) (sarama.SyncProducer, error) {
-	sarama.Logger = log.New(os.Stdout, "[sarama] ", log.LstdFlags)
+	sarama.Logger = log.New(os.Stdout, "[sarama_producer] ", log.LstdFlags)
 	config := sarama.NewConfig()
 	config.Version = sarama.V3_0_0_0
 	config.Producer.Return.Successes = true
