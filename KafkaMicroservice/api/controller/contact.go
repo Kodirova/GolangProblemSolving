@@ -42,7 +42,7 @@ func PostContact(c *gin.Context) {
 
 func GetContact(c *gin.Context) {
 	var contact models.Contact
-	proxy.MakeProxy(c, "http://localhost:8081/", "contact-api/contact")
+	proxy.MakeProxy(c, "http://localhost:8081/", "contact-api/contact/")
 	c.IndentedJSON(http.StatusOK, contact)
 }
 

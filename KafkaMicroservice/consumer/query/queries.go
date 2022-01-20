@@ -9,7 +9,13 @@ import (
 	_ "github.com/lib/pq"
 )
 
+const tableContactCreation = "CREATE TABLE IF NOT EXISTS contacts(id SERIAL, firstname TEXT NOT NULL, lastname TEXT NOT NULL, phone VARCHAR(13), email text, position text)"
+
 func CreateContact(contact *models.Contact) error {
+	_, err1 := database.DB.Exec(tableContactCreation)
+	if err1 != nil {
+		return err1
+	}
 	sqlStatement := `INSERT INTO contacts(firstname, lastname, phone, email, position) VALUES($1, $2, $3, $4, $5) RETURNING id`
 	err := database.DB.QueryRow(sqlStatement, &contact.FirstName, &contact.LastName, &contact.Phone, &contact.Email, &contact.Position).Scan(&contact.ID)
 	if err != nil {
@@ -19,6 +25,10 @@ func CreateContact(contact *models.Contact) error {
 }
 
 func UpdateContact(contact *models.Contact, n int) error {
+	_, err1 := database.DB.Exec(tableContactCreation)
+	if err1 != nil {
+		return err1
+	}
 	sqlstatement := "UPDATE contacts SET firstname=$1, lastname=$2, phone=$3, email=$4, position=$5 WHERE id=$6"
 	fmt.Println(database.DB == nil)
 	_, err := database.DB.Exec(sqlstatement, &contact.FirstName, &contact.LastName, &contact.Phone, &contact.Email, &contact.Position, n)
@@ -31,6 +41,10 @@ func UpdateContact(contact *models.Contact, n int) error {
 }
 
 func DeleteContact(contact *models.Contact, n int) error {
+	_, err1 := database.DB.Exec(tableContactCreation)
+	if err1 != nil {
+		return err1
+	}
 	_, err := database.DB.Exec("DELETE from contacts where id=$1", n)
 	if err != nil {
 		fmt.Printf("Unable to execute the query. %v", err)
@@ -40,6 +54,10 @@ func DeleteContact(contact *models.Contact, n int) error {
 }
 
 func GetContact(contact *models.Contact, n int) error {
+	_, err1 := database.DB.Exec(tableContactCreation)
+	if err1 != nil {
+		return err1
+	}
 	sqlstatement := "SELECT id, firstname, lastname, phone, email, position FROM contacts WHERE id=$1"
 	row := database.DB.QueryRow(sqlstatement, n)
 	err := row.Scan(&contact.ID, &contact.FirstName, &contact.LastName, &contact.Phone, &contact.Email, &contact.Position)
@@ -48,6 +66,10 @@ func GetContact(contact *models.Contact, n int) error {
 }
 
 func ListContacts(contact *[]models.Contact) error {
+	_, err1 := database.DB.Exec(tableContactCreation)
+	if err1 != nil {
+		return err1
+	}
 	rows, err := database.DB.Query("SELECT * FROM contacts ORDER BY id")
 	if err != nil {
 		return err
