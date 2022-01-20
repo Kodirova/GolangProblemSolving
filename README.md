@@ -18,9 +18,8 @@
 2. Task list
 ---------------------------------------------------------------------
 ### Tasks for Kafka (use gin) [CRUD](https://github.com/Kodirova/GolangProblemSolving/tree/master/KafkaMicroservice)
-Publish messages from your http service to kafka. Subscribe to topic and write a handler for each type of request.
+Publish messages from your http service to kafka. Subscribe to topic and write a handler for each type of request.Proxy for Get request
 
 1. contact list 
 
-#####Proxy for Get request
 ---------------------------------------------------------------------
