@@ -11,6 +11,7 @@ services:
       - ALLOW_ANONYMOUS_LOGIN=yes
     networks:
       - mynet  
+    
   kafka:
     image: docker.io/bitnami/kafka:3
     ports:
@@ -25,7 +26,8 @@ services:
     depends_on:
       - zookeeper
     networks:
-      - mynet  
+      - mynet    
+   
   database:
     image: postgres:14
     restart: always
@@ -39,7 +41,8 @@ services:
     ports:
       - "5432:5432" 
     networks:
-      - mynet     
+      - mynet    
+     
 
 volumes:
   zookeeper_data:

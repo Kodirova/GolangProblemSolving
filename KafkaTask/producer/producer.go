@@ -29,6 +29,7 @@ func PushHandlerToQueue(topic string, message []byte) error {
 	if err != nil {
 		return err
 	}
+
 	data := &sarama.ProducerMessage{
 		Topic: topic,
 		Value: sarama.StringEncoder(message),

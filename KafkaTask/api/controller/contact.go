@@ -3,9 +3,12 @@ package controller
 import (
 	"KafkaTask/api/model"
 	"KafkaTask/producer"
+	"KafkaTask/proxy"
 	"encoding/json"
 	"fmt"
+	"log"
 	"net/http"
+	_ "strconv"
 
 	"github.com/gin-gonic/gin"
 )
@@ -38,17 +41,74 @@ func PostContact(c *gin.Context) {
 }
 
 func GetContact(c *gin.Context) {
-	c.IndentedJSON(http.StatusOK, contacts)
+	var contact model.Contact
+	proxy.MakeProxy(c, "http://localhost", "contact-api/contact")
+
+	c.IndentedJSON(http.StatusOK, contact)
 }
 
-func GetContacts(c *gin.Context) {
-	id := c.Param("id")
-	for _, contact := range contacts {
-		if contact.ID == id {
-			c.IndentedJSON(http.StatusOK, contact)
-			return
-		}
-	}
-	c.IndentedJSON(http.StatusNotFound, gin.H{"message": "album not found"})
+// func GetContacts(c *gin.Context) {
+// 	id := c.GetInt("id")
+// 	for _, contact := range contacts {
+// 		if contact.ID == id {
+// 			c.IndentedJSON(http.StatusOK, contact)
+// 			return
+// 		}
+// 	}
+// 	c.IndentedJSON(http.StatusNotFound, gin.H{"message": "album not found"})
 
+// }
+
+func UpdateContact(c *gin.Context) {
+	var contact model.Contact
+	if err := c.BindJSON(&contact); err != nil {
+		fmt.Println(err.Error())
+		c.AbortWithStatus(http.StatusNotFound)
+	}
+
+	dataInBytes, err := json.Marshal(contact)
+	log.Println(contact)
+	if err != nil {
+		response := gin.H{
+			"status":  http.StatusNotFound,
+			"message": "Message has not been sent.",
+			"data":    contact,
+		}
+		c.IndentedJSON(http.StatusNotFound, response)
+	} else {
+		response := gin.H{
+			"status":  http.StatusOK,
+			"message": "Message has been sent.",
+			"data":    contact,
+		}
+		c.IndentedJSON(http.StatusOK, response)
+	}
+	producer.PushHandlerToQueue("update", dataInBytes)
+
+}
+
+func DeleteContact(c *gin.Context) {
+	var contact model.Contact
+	if err := c.BindJSON(&contact); err != nil {
+		fmt.Println(err.Error())
+		c.AbortWithStatus(http.StatusNotFound)
+	}
+	dataInBytes, err := json.Marshal(contact)
+	log.Println(contact)
+	if err != nil {
+		response := gin.H{
+			"status":  http.StatusNotFound,
+			"message": "Message has not been sent.",
+			"data":    contact,
+		}
+		c.IndentedJSON(http.StatusNotFound, response)
+	} else {
+		response := gin.H{
+			"status":  http.StatusOK,
+			"message": "Message has been sent.",
+			"data":    contact,
+		}
+		c.IndentedJSON(http.StatusOK, response)
+	}
+	producer.PushHandlerToQueue("delete", dataInBytes)
 }
