@@ -1,4 +1,4 @@
-package model
+package models
 
 type Contact struct {
 	ID        int    `json:"id"`

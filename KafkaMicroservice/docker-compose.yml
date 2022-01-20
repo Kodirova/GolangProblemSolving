@@ -10,7 +10,7 @@ services:
     environment:
       - ALLOW_ANONYMOUS_LOGIN=yes
     networks:
-      - mynet  
+      - net  
     
   kafka:
     image: docker.io/bitnami/kafka:3
@@ -26,7 +26,7 @@ services:
     depends_on:
       - zookeeper
     networks:
-      - mynet    
+      - net    
    
   database:
     image: postgres:14
@@ -41,7 +41,7 @@ services:
     ports:
       - "5432:5432" 
     networks:
-      - mynet    
+      - net    
      
 
 volumes:
@@ -52,5 +52,5 @@ volumes:
   data:
 
 networks:
-  mynet:
+  net:
     driver: bridge

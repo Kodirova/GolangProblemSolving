@@ -1,8 +1,8 @@
-package route
+package routes
 
 import (
-	"KafkaTask/api/controller"
-	_ "KafkaTask/proxy"
+	"kafkamicroservice/api/controller"
+	// _ "kafkamicroservice/api"
 
 	"github.com/gin-gonic/gin"
 )

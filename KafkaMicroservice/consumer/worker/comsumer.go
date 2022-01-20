@@ -1,11 +1,11 @@
-package consumer
+package worker
 
 import (
-	"KafkaTask/api/middlewares"
-	"KafkaTask/api/model"
 	"database/sql"
 	"encoding/json"
 	"fmt"
+	"kafkamicroservice/consumer/models"
+	"kafkamicroservice/consumer/query"
 	"log"
 	"os"
 	"os/signal"
@@ -48,7 +48,7 @@ func CreateContact() error {
 	signal.Notify(sigchan, syscall.SIGINT, syscall.SIGTERM)
 	// Count how many message processed
 	msgCount := 0
-	var contact model.Contact
+
 	// Get signal for finish
 	doneCh := make(chan struct{})
 	go func() {
@@ -59,8 +59,12 @@ func CreateContact() error {
 			case msg := <-consumer.Messages():
 				msgCount++
 				fmt.Printf("Received message Count %d: | Topic(%s) | Message(%s) \n", msgCount, string(msg.Topic), string(msg.Value))
-
-				middlewares.CreateContact(&contact)
+				text := string(msg.Value)
+				bytes := []byte(text)
+				var contact models.Contact
+				log.Println(bytes)
+				log.Println(json.Unmarshal(bytes, &contact))
+				query.CreateContact(&contact)
 			case <-sigchan:
 				fmt.Println("Interrupt is detected")
 				doneCh <- struct{}{}
@@ -107,13 +111,13 @@ func UpdateContact() error {
 				fmt.Printf("Received message Count %d: | Topic(%s) | Message(%s) | KEY(%s) \n", msgCount, string(msg.Topic), string(msg.Value), msg.Key)
 				text := string(msg.Value)
 				bytes := []byte(text)
-				var contact model.Contact
+				var contact models.Contact
 				log.Println(bytes)
 				log.Println(json.Unmarshal(bytes, &contact))
 				log.Print("raw : ", text)
 				log.Print("user id : ", contact.ID)
 
-				middlewares.UpdateContact(&contact, contact.ID)
+				query.UpdateContact(&contact, contact.ID)
 			case <-sigchan:
 				fmt.Println("Interrupt is detected")
 				doneCh <- struct{}{}
@@ -160,13 +164,13 @@ func DeleteContact() error {
 				fmt.Printf("Received message Count %d: | Topic(%s) | Message(%s) | KEY(%s) \n", msgCount, string(msg.Topic), string(msg.Value), msg.Key)
 				text := string(msg.Value)
 				bytes := []byte(text)
-				var contact model.Contact
+				var contact models.Contact
 				log.Println(bytes)
 				log.Println(json.Unmarshal(bytes, &contact))
 				log.Print("raw : ", text)
 				log.Print("user id : ", contact.ID)
 
-				middlewares.DeleteContact(&contact, contact.ID)
+				query.DeleteContact(&contact, contact.ID)
 			case <-sigchan:
 				fmt.Println("Interrupt is detected")
 				doneCh <- struct{}{}

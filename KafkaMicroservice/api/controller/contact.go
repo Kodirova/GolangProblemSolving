@@ -1,11 +1,11 @@
 package controller
 
 import (
-	"KafkaTask/api/model"
-	"KafkaTask/producer"
-	"KafkaTask/proxy"
 	"encoding/json"
 	"fmt"
+	"kafkamicroservice/api/models"
+	"kafkamicroservice/api/producer"
+	"kafkamicroservice/api/proxy"
 	"log"
 	"net/http"
 	_ "strconv"
@@ -13,10 +13,10 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-var contacts []model.Contact
+var contacts []models.Contact
 
 func PostContact(c *gin.Context) {
-	newContact := new(model.Contact)
+	newContact := new(models.Contact)
 	if err := c.BindJSON(&newContact); err != nil {
 		fmt.Println(err.Error())
 		c.AbortWithStatus(http.StatusNotFound)
@@ -41,9 +41,8 @@ func PostContact(c *gin.Context) {
 }
 
 func GetContact(c *gin.Context) {
-	var contact model.Contact
-	proxy.MakeProxy(c, "http://localhost", "contact-api/contact")
-
+	var contact models.Contact
+	proxy.MakeProxy(c, "http://localhost:8081/", "contact-api/contact")
 	c.IndentedJSON(http.StatusOK, contact)
 }
 
@@ -60,7 +59,7 @@ func GetContact(c *gin.Context) {
 // }
 
 func UpdateContact(c *gin.Context) {
-	var contact model.Contact
+	var contact models.Contact
 	if err := c.BindJSON(&contact); err != nil {
 		fmt.Println(err.Error())
 		c.AbortWithStatus(http.StatusNotFound)
@@ -88,7 +87,7 @@ func UpdateContact(c *gin.Context) {
 }
 
 func DeleteContact(c *gin.Context) {
-	var contact model.Contact
+	var contact models.Contact
 	if err := c.BindJSON(&contact); err != nil {
 		fmt.Println(err.Error())
 		c.AbortWithStatus(http.StatusNotFound)
