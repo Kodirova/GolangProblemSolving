@@ -5,7 +5,7 @@ import (
 	"time"
 )
 
-var ContactList map[int]*Contact
+var ContactList map[int]Contact = make(map[int]Contact)
 var id int = 0
 
 type Contact struct {
@@ -27,37 +27,48 @@ type Task struct {
 	DueDate   time.Time
 }
 
-func createContact(c Contact) {
-	ContactList[c.ID] = &c
+func createContact(c Contact) Contact {
+	ContactList[c.ID] = c
 	for key, value := range ContactList {
 		fmt.Println("Key:", key, "Value:", value)
 	}
-
+	return c
 }
 
-func getAll() {
+func getAll() map[int]Contact {
 	for key, value := range ContactList {
 		fmt.Println("Key:", key, "Value:", value)
 	}
+	return ContactList
 }
 
-func get(n int) {
+func get(n int) Contact {
 	fmt.Println("we are here")
 	value, exists := ContactList[n]
 	fmt.Printf("key exists in map: %t, value: %v \n", exists, value)
+	return ContactList[n]
 }
 
-// func deletebyId(n int){
-// 	var approve string
-// 	fmt.Println("Are you sure to delete? y/n")
-// 	fmt.Scanf("%s", approve)
-// 	if approve == "yes"{
-// 		delete(ContactList, n)
-// 	}	
-// }
+func update(c Contact) Contact {
+	ContactList[c.ID] = c
+	c = Contact{
+		ID:        c.ID,
+		FirstName: c.FirstName,
+		LastName:  c.LastName,
+		Phone:     c.Phone,
+		Email:     c.Email,
+		Position:  c.Position,
+	}
+	return c
+}
+
+func deletebyId(n int) Contact {
+	delete(ContactList, n)
+	return ContactList[n]
+
+}
 
 func main() {
-	ContactList = make(map[int]*Contact)
 	var firstname, lastname, phone, email, postion string
 menu:
 	var choice int
@@ -90,9 +101,6 @@ menu:
 			Email:     email,
 			Position:  postion,
 		}
-		id++
-		fmt.Println("id:", id)
-		fmt.Println("contact declared", contact)
 		createContact(contact)
 		goto menu
 	case 2:
@@ -115,7 +123,7 @@ menu:
 		var search_id int
 		fmt.Println("enter your id:")
 		fmt.Scanf("%d", &search_id)
-		if ContactList[search_id] != nil {
+		if ContactList[search_id].FirstName != "" {
 			fmt.Println("enter first name")
 			fmt.Scanf("%s", &firstname)
 			fmt.Println("enter last name")
@@ -137,7 +145,7 @@ menu:
 			fmt.Println("contact updated", contact)
 
 		}
-		goto menu	
+		goto menu
 	}
 
 }

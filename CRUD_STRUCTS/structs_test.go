@@ -1,15 +1,13 @@
 package main
-import "testing"
 
-func TestCreate(t *testing.T){
-	contact := Contact{
-		ID:        1,
-		FirstName: "firstname",
-		LastName:  "lastname",
-		Phone:     "phone",
-		Email:     "email",
-		Position:  "postion",
-	}
-	got := createContact(contact)
-	want :=  Contact{1, "firstname", "lastname", "phone", "email", "position"}
+import (
+	"testing"
+
+	"github.com/stretchr/testify/assert"
+)
+
+func CreateTest(t *testing.T) {
+	expected := Contact{ID: 1, FirstName: "test", LastName: "test", Phone: "test", Email: "test", Position: "test"}
+	actual := createContact(Contact{})
+	assert.Equal(t, expected, actual, "contact creation")
 }
