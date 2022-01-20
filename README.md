@@ -21,6 +21,5 @@
 Publish messages from your http service to kafka. Subscribe to topic and write a handler for each type of request.
 
 1. contact list 
-
-P.S. You can use proxy for retrieving data (GET methods).
+Proxy for Get request
 ---------------------------------------------------------------------
